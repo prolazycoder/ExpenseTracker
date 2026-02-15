@@ -1,35 +1,63 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query';
+import Layout from '@/components/Layout';
+import DashboardStats from '@/components/DashboardStats';
+import ExpenseForm from '@/components/ExpenseForm';
+import ExpenseList from '@/components/ExpenseList';
+import { getExpenses } from '@/api/expenses';
 
-function App() {
-  const [count, setCount] = useState(0)
+// Global User ID constant
+const USER_ID = '3fa85f64-5717-4562-b3fc-2c963f66afa6';
+
+const queryClient = new QueryClient();
+
+// Main content component to use hooks
+const ExpenseTrackerApp = () => {
+  // Using global constant instead of state
+  const userId = USER_ID;
+
+  const { data: expenses = [], isLoading, isError } = useQuery({
+    queryKey: ['expenses', userId],
+    queryFn: () => getExpenses(userId),
+  });
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <Layout>
+      <div className="mb-8">
+        {/* Stats Dashboard */}
+        {isLoading ? (
+          <div className="text-center" style={{ padding: '2rem 0' }}>Loading dashboard...</div>
+        ) : (
+          <DashboardStats expenses={expenses} />
+        )}
 
-export default App
+        <div className="main-grid grid">
+          {/* Expense Form */}
+          <div className="col-span-1">
+            <ExpenseForm userId={userId} />
+          </div>
+
+          {/* Expense List */}
+          <div className="col-span-2">
+            {isLoading ? (
+              <div className="text-center" style={{ padding: '2rem 0' }}>Loading expenses...</div>
+            ) : isError ? (
+              <div className="text-center text-destructive" style={{ padding: '2rem 0' }}>Error loading expenses. Check backend connection.</div>
+            ) : (
+              <ExpenseList expenses={expenses} />
+            )}
+          </div>
+        </div>
+      </div>
+    </Layout>
+  );
+};
+
+const App = () => {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ExpenseTrackerApp />
+    </QueryClientProvider>
+  );
+};
+
+export default App;
