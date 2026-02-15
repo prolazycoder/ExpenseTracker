@@ -1,5 +1,5 @@
-import { render, screen, fireEvent, within } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect } from 'vitest';
 import ExpenseList from './ExpenseList';
 import type { ExpenseDTO } from '@/api/expenses';
 
